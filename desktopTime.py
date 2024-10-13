@@ -34,11 +34,17 @@ class TransparentClock(QWidget):
 
         self.set_font_style()
 
-        timer = QTimer(self)
-        timer.timeout.connect(self.update_time)
-        timer.start(1000)
+        # 初始化时先更新时间显示
         self.update_time()
         self.adjust_font_size_and_window_width()
+
+        current_time = QTime.currentTime()
+        ms_to_next_second = 1000 - current_time.msec()
+
+        self.initial_timer = QTimer(self)
+        self.initial_timer.setSingleShot(True)
+        self.initial_timer.timeout.connect(self.start_second_timer)
+        self.initial_timer.start(ms_to_next_second)
 
         tray_icon = QSystemTrayIcon(self)
         # tray_icon.setIcon(QIcon("icon.png"))  # 替换为你的图标路径
@@ -78,6 +84,12 @@ class TransparentClock(QWidget):
         tray_icon.show()
 
         self.show()
+
+    def start_second_timer(self):
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_time)
+        self.timer.start(1000)
+        self.update_time()
 
     def update_time(self):
         current_time = QTime.currentTime().toString('HH:mm:ss')
